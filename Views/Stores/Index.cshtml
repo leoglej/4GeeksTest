@@ -1,0 +1,126 @@
+﻿
+@{
+    ViewBag.Title = "Index";
+}
+
+<div class="row" >
+    <div class="col-sm-4" id="storeList" >
+
+    </div>
+    <div class="col-sm-8" >
+
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-sm-4" >
+
+    </div>
+    <div class="col-sm-8" id="artsStoreList">
+
+    </div>
+</div>
+
+
+@section scripts{
+    <script>
+
+        $(document).ready(function () {
+
+              $(document).ajaxError(function (e, xhr, opt) {
+
+                    if (xhr.status == 400)
+                    {
+
+                        $("#storeList").text = "Error 400 - Bad request";
+
+                    }
+                    else if (xhr.status == 401)
+                    {
+                
+                        $("#storeList").text = "Error 401 - Not authorized";
+
+                    }
+                    else if (xhr.status == 404)
+                    {
+
+                        $("#storeList").text = "Error 404 - Record not found";
+
+                    }
+                    else if (xhr.status == 500)
+                    {
+
+                        $("#storeList").text = "Error 500 - Server Error";
+
+                    }
+                    else
+                    {
+
+                        $("#storeList").text = "Error " + xhr.status + " - Unexpected error";
+
+                    }
+
+                });
+            
+                $.ajaxSetup({
+                headers: {
+                    'Authorization': makeBaseAuth(),
+                    global: true
+                }
+                });
+
+                $.get("http://localhost:1569/services/stores", function (data, status) {
+
+                var obj = jQuery.parseJSON(data);
+
+                var stores = obj.stores;
+
+                var storeList = "<h2>List of Stores Registered</h2><br>";
+
+                jQuery.each(stores, function (i, val) {
+
+                    storeList = storeList + "<li>" + "<button type=" + "'button'" + " class=" + "'btn btn-sm'" + " onclick = " + "'showArticles(" + val.Id + ")'"
+                            + ">Articles</button> " + val.Name + "(" + val.Address + ")</li>";
+
+                });               
+
+                $("#storeList").html(storeList);
+                
+            });
+        });
+
+        function showArticles(storeId) {
+
+            var uri = "http://localhost:1569/services/articles/stores/" + storeId;
+
+            $.get(uri, function (data, status) {
+
+                var obj = jQuery.parseJSON(data);
+
+                var artsStore = obj.articles;
+                
+                var artsStoreList = "<h2 align=" + "'center'" + ">Articles by Store Selected</h2><br>" + "<table style = " + "'font-family: arial, sans-serif;border-collapse: collapse;width: 100%;'" + " ><tr><th>Name</th><th>Description</th><th>Price</th><th>TotalInShelf</th><th>TotalInVault</th></tr>";
+
+                jQuery.each(artsStore, function (i, val) {
+
+                    artsStoreList = artsStoreList + "<tr><th>" + val.Name + "</th><th>" + val.Description + "</th><th>" + val.Price + "</th><th>" + val.TotalInShelf + "</th><th>" + val.TotalInVault + "</th></tr>";
+   
+                });
+
+                artsStoreList = artsStoreList + "</table>";
+
+                $("#artsStoreList").html(artsStoreList);
+            });
+
+        };
+
+        function makeBaseAuth() {
+            var tok = "my_user" + ':' + "my_password";
+            var hash = btoa(tok);
+            return "Basic " + hash;
+        }
+
+
+    </script>
+}
+
